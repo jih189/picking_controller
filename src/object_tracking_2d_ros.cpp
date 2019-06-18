@@ -68,10 +68,10 @@ void ApplyTrackerSettingsCallback(TrackerBase* tracker)
 void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     // Dont atempt to use the image without having info about the camera first
-    //    if(!has_camera_info_){
-    //        ROS_WARN("No Camera Info Received Yet");
-    //        return;
-    //    }
+    if(!has_camera_info_){
+        ROS_WARN("No Camera Info Received Yet");
+        return;
+    }
 
     // Get the image
     cv_bridge::CvImagePtr subscribed_ptr;
@@ -150,8 +150,10 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     // Store the detection into an array struture
     visualization_msgs::MarkerArray marker_transforms;
     object_tracking_2d_ros::ObjectDetections object_detections;
-    std::vector <tf::Transform> transforms;
-    object_detections.header.frame_id = msg->header.frame_id;
+    std::vector <tf::StampedTransform> transforms;
+    //todo
+    //object_detections.header.frame_id = msg->header.frame_id;
+    object_detections.header.frame_id = object_frame_id_;
     object_detections.header.stamp = msg->header.stamp;
 
     // Loop over each detection
@@ -170,7 +172,8 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 
         // Set the attributes for the marker
         visualization_msgs::Marker marker_transform;
-        marker_transform.header.frame_id = msg->header.frame_id;
+        //marker_transform.header.frame_id = msg->header.frame_id;
+        marker_transform.header.frame_id = object_frame_id_;
         marker_transform.header.stamp = msg->header.stamp;
 //        stringstream convert;
 //        convert << "tag" << detections[i].id;
@@ -228,6 +231,7 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
 
     // Publish the marker and detection messages
     if(publish_transform_){
+        static tf::TransformBroadcaster transform_broadcaster_;
         transform_broadcaster_.sendTransform(transforms);
     }
 
@@ -280,6 +284,8 @@ void ConnectCallback(const ros::SingleSubscriberPublisher& info)
                                                                  "raw", ros_transport_hints, (*node_),
                                                                  "image_transport"));
 
+        std::cout << "image topic : " << DEFAULT_IMAGE_TOPIC << std::endl;
+        std::cout << "info topic : " << DEFAULT_CAMERA_INFO_TOPIC << std::endl;
         image_subscriber = (*image_).subscribe(
                     DEFAULT_IMAGE_TOPIC, 1, &ImageCallback,
                     image_transport_hint);
@@ -350,6 +356,7 @@ void GetParameterValues()
     node_->param ("ebt_auto_init", ebt_auto_init_, true);
     node_->param ("ebt_init", ebt_init_, true);
     node_->param ("ebt_th_cm", ebt_th_cm_, 0.2);
+    node_->param ("ebt_obj_name", ebt_obj_name_, std::string("default_obj_name"));
     node_->param ("ebt_obj_path", ebt_obj_path_, std::string("obj_name"));
     node_->param ("ebt_mesh_path", ebt_mesh_path_, std::string("mesh_path"));
     node_->param ("ebt_mesh_resource", ebt_mesh_resource_, std::string(""));
@@ -368,6 +375,7 @@ void GetParameterValues()
     node_->param ("user_input", user_input_, true);
     node_->param ("viewer", viewer_, false);
     node_->param ("publish_transform", publish_transform_, true);
+    node_->param ("frame_id", object_frame_id_, std::string("right_hand_camera"));
 
     boost::filesystem::path p(ebt_obj_path_);
     ebt_obj_id_ = p.filename().string();

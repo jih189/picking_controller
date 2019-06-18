@@ -67,7 +67,6 @@ ros::Subscriber info_subscriber;
 ros::Subscriber init_poses_subscriber;
 ros::Subscriber sub_remote_key_;
 image_transport::Subscriber image_subscriber;
-static tf::TransformBroadcaster transform_broadcaster_;
 
 // Config
 object_tracking_2d_ros::object_tracking_2d_rosConfig config_;
@@ -83,6 +82,7 @@ bool ebt_auto_init_;
 bool ebt_reset_;
 double ebt_th_cm_;
 std::string ebt_obj_path_;
+std::string ebt_obj_name_;
 std::string ebt_obj_id_;
 std::string ebt_mesh_path_;
 std::vector<float> ebt_init_pose_;
@@ -114,6 +114,8 @@ bool quit_;
 std::string display_type_;
 std::string remote_input_;
 boost::shared_ptr<vk::UserInputThread> user_input_thread_;
+
+std::string object_frame_id_;
 
 // Package Functions
 

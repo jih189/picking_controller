@@ -31,7 +31,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   tf
 )
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 2.4.9 REQUIRED)
 find_package(Eigen REQUIRED)
 
 include(FindPkgConfig)
@@ -176,6 +176,7 @@ include_directories( include
 add_library(user_input_thread       src/user_input_thread.cpp)
 add_library(object_tracking_2d_ros  src/object_tracking_2d_ros.cpp)
 add_executable(object_tracking_2d_ros_node src/object_tracking_2d_ros.cpp)
+add_executable(viewer_node src/viewer.cpp)
 
 # ## Add cmake target dependencies of the executable/library
 # ## as an example, message headers may need to be generated before nodes
@@ -194,6 +195,11 @@ target_link_libraries(object_tracking_2d_ros_node
     ${OpenCV_LIBRARIES}
     object_tracking_2d
     user_input_thread
+)
+
+target_link_libraries(viewer_node
+    ${catkin_LIBRARIES}
+    object_tracking_2d
 )
 
 # #############
